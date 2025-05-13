@@ -7,6 +7,7 @@
 
 import Cocoa
 import ApplicationServices
+import ServiceManagement
 
 class ConfigureViewController: NSViewController {
     private let iconView = NSImageView()
@@ -23,6 +24,9 @@ class ConfigureViewController: NSViewController {
     private let disableKarabinerButton = NSButton(title: "Disable Karabiner", target: nil, action: nil)
     private let configureProfileButton = NSButton(title: "Configure Disabled Profile", target: nil, action: nil)
     private let karabinerPathDefault = "/Library/Application Support/org.pqrs/Karabiner-Elements/bin"
+    
+    // Startup
+    private let launchAtLoginCheckbox = NSButton(checkboxWithTitle: "Launch KarabinerFix at login", target: nil, action: nil)
 
     // Profiles
     private let disabledProfileName = "Disabled"
@@ -99,6 +103,11 @@ class ConfigureViewController: NSViewController {
         configureProfileButton.translatesAutoresizingMaskIntoConstraints = false
         configureProfileButton.target = self
         configureProfileButton.action = #selector(configureDisabledProfile)
+        
+        launchAtLoginCheckbox.target = self
+        launchAtLoginCheckbox.action = #selector(toggleLaunchAtLogin)
+        launchAtLoginCheckbox.translatesAutoresizingMaskIntoConstraints = false
+        launchAtLoginCheckbox.state = isLoginItemEnabled() ? .on : .off
 
         // Boxes
         let permissionBox = NSBox()
@@ -108,6 +117,7 @@ class ConfigureViewController: NSViewController {
         permissionBox.translatesAutoresizingMaskIntoConstraints = false
         permissionBox.contentView = NSView()
         permissionBox.contentView?.addSubview(accessibilityButton)
+        permissionBox.contentView?.addSubview(launchAtLoginCheckbox)
 
         let karabinerBox = NSBox()
         karabinerBox.title = "Karabiner"
@@ -143,7 +153,10 @@ class ConfigureViewController: NSViewController {
 
             accessibilityButton.topAnchor.constraint(equalTo: permissionBox.contentView!.topAnchor, constant: 10),
             accessibilityButton.centerXAnchor.constraint(equalTo: permissionBox.contentView!.centerXAnchor),
-            accessibilityButton.bottomAnchor.constraint(equalTo: permissionBox.contentView!.bottomAnchor, constant: -10),
+            
+            launchAtLoginCheckbox.topAnchor.constraint(equalTo: accessibilityButton.bottomAnchor, constant: 10),
+            launchAtLoginCheckbox.centerXAnchor.constraint(equalTo: karabinerBox.contentView!.centerXAnchor),
+            launchAtLoginCheckbox.bottomAnchor.constraint(equalTo: permissionBox.contentView!.bottomAnchor, constant: -10),
 
             karabinerBox.topAnchor.constraint(equalTo: permissionBox.bottomAnchor, constant: 20),
             karabinerBox.leadingAnchor.constraint(equalTo: permissionBox.leadingAnchor),
@@ -399,5 +412,25 @@ class ConfigureViewController: NSViewController {
         alert.informativeText = message
         alert.alertStyle = .critical
         alert.runModal()
+    }
+    
+    @objc private func toggleLaunchAtLogin(_ sender: NSButton) {
+        let enable = sender.state == .on
+        do {
+            if enable {
+                try SMAppService.mainApp.register()
+                print("[KarabinerFix] Registered for login")
+            } else {
+                try SMAppService.mainApp.unregister()
+                print("[KarabinerFix] Unregistered from login")
+            }
+        } catch {
+            showError("Failed to update login item: \(error.localizedDescription)")
+            sender.state = isLoginItemEnabled() ? .on : .off
+        }
+    }
+
+    private func isLoginItemEnabled() -> Bool {
+        SMAppService.mainApp.status == .enabled
     }
 }
