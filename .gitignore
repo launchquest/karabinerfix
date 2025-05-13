@@ -1,0 +1,10 @@
+.DS_Store
+
+# Xcode user state
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# More Xcode user data
+*.xcodeproj/project.xcworkspace/
+*.xcodeproj/xcshareddata/WorkspaceSettings.xcsettings
+
