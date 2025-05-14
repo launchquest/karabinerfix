@@ -2,6 +2,13 @@
 
 Simple MacOS utility to fix Karabiner-Elements sleep bug
 
+## Install
+
+```
+brew tap launchquest/karabinerfix
+brew install --cask karabinerfix
+```
+
 ## What is this for?
 
 Karabiner Elements is a fantastic utility that allows you to remap keyboards. Unfortunately on newer Macs, there's an issue with [keeping Macs awake](https://github.com/pqrs-org/Karabiner-Elements/issues/2880) which has required people to either find other applications or implement clever scripts.
